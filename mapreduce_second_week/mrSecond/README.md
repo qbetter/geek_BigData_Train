@@ -126,12 +126,33 @@ public class FlowBean implements Writable {
 执行：
 将项目打成jar包，并通过scp上传到开发机上。并且将input数据上传到hdfs上，共程序使用，最终输出结果也是在hdfs上。
 
+然后通过Hadoop命令来执行程序，命令如下：
+hadoop jar /home/stude/second_task/mrSecond-1.0-SNAPSHOT.jar com.mr.second.flow_static /user/stude/second/HTTP_20130313143750.dat /user/stuond/output
+后面两个是在hdfs的输入数据地址，以及数据的输出地址。
+
+scp传递数据的方式：
+scp target/mrSecond-1.0-SNAPSHOT_old.jar  studen@55.52.33:/home/studebei/second_task
+
 最终的展示结果：
+![image](https://user-images.githubusercontent.com/21261099/158055834-2cfe22ac-305f-4cfe-83f0-7b60bce94fb3.png)
 
-
-
-
+遇到的深坑：
 main函数这部分因为不懂这些设置的意思所以一个bug调试了很久。原因主要是：
+原来这两个是同时设置map和reduce的key、value的输出格式。
+setOutputKeyClass和setOutputValueClass是同时设置K2,V2和K3,V3的类型，也就是说以下代码：
+job.setOutputKeyClass(Text.class);
+job.setOutputValueClass(IntWritable.class);
+2)当K2, V2 和K3 , V3类型不一致时（大多数情况）：
+job.setOutputKeyClass(Text.class);
+job.setOutputValueClass(IntWritable.class);
+job.setMapOutputKeyClass(Text.class);
+job.setMapOutputValueClass(Text.class);
+setMapOutputKeyClass和setMapOutputValueClass会覆盖setOutputKeyClass和setOutputValueClass设置的效果，这样一来，setMapOutputKeyClass和setMapOutputValueClass设置的是map的输出类型，而setOutputKeyClass和setOutputValueClass设置的就只是reduce的输出类型。
 
+上述设置完成后，还需要注意一个地方，那就是setCombinerClass方法必须要注释掉，否则仍然会报错，原因是一般情况下会把reduce方法设置成combiner的类，而数据流是
+Mapper<K1, V1, K2, V2> --> Combiner<K2, V2, K3, V3> -->
+Reducer<K3, V3, K4, V4>
+K3,V3和K4,V4类型不同，所以仍会报错，因此需要将setCombinerClass方法注释掉
+//job.setCombinerClass(Reduce.class);
 
 
