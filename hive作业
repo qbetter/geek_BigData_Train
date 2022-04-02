@@ -1,0 +1,44 @@
+作业一：
+展示电影 ID 为 2116 这部电影各年龄段的平均影评分。
+sql如下：
+select  t_user.age,avg(rate) from t_user join t_rating on t_user.userid=t_rating.userid where t_rating.movieid='2116' group by t_user.age limit 10;
+
+作业二：
+找出男性评分最高且评分次数超过 50 次的 10 部电影，展示电影名，平均影评分和评分次数。
+sql如下：
+select t_movies.moviename,a.avg_score,a.movie_count from
+(select rat.movieid as movieid,max(rat.rate) as max_score,avg(rat.rate) as avg_score,count(1) as movie_count from t_user usertb join t_rating rat on usertb.userid=rat.userid where usertb.sex='M' group by rat.movieid having movie_count > 50 order by avg_score desc ) a
+join
+t_movies
+on a.movieid=t_movies.movieid
+limit 10; 
+
+遇到的问题：
+1，
+select * from t_user user  join t_rating  rat on t_user.userid= t_rating.userid  limit 10;
+上面的不行，下面的就可以：
+select * from t_user  join t_rating  on t_user.userid=t_rating.userid  limit 10;
+user可能是hive的一个保留字，不能用做别名。在遇到类似问题时，报as附近有错误，那就检查下你起的别名是不是一个hive保留字，不能用作别名。改成下面的就行了
+select * from t_user userdd join t_rating ratdd on t_user.userid=t_rating.userid  limit 10;
+2，创建外表
+CREATE EXTERNAL TABLE t_user(
+  UserID bigint COMMENT '用户id',
+  sex string COMMENT '性别',
+  age string COMMENT '年龄',
+  Occupation string COMMENT '职业',
+  Zipcode string COMMENT '邮编'
+  )
+COMMENT '用户信息表'
+ROW FORMAT SERDE 'org.apache.hadoop.hive.contrib.serde2.MultiDelimitSerDe'
+WITH SERDEPROPERTIES ('field.delim'='::')
+STORED AS TEXTFILE
+LOCATION '/user/student3/huaibei/four_five_hive/users';
+
+有两点需要注意的：
+注意点：
+1，location那行要放在最后一行，否则报错。
+2，行分割符的时候是'::'两个字符，正常的行分割语句'row format delimited fields terminated by'有问题，这种只支持一个字符作为分隔符，不支持多个字符作为分隔符。
+解决方法是使用MultiDelimitSerDe或者RegexSerDe
+
+
+
