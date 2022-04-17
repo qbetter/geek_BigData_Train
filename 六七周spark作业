@@ -1,0 +1,79 @@
+一，作业一
+
+一，执行SparkPi.scala和作业一时遇到的问题
+1，pom文件依赖设置
+引入依赖jackson.core。应该是包冲突
+<dependency>
+  <groupId>com.fasterxml.jackson.core</groupId>
+  <artifactId>jackson-databind</artifactId>
+  <version>2.6.6</version>
+</dependency>
+
+读取文件的时候碰到一下错误：
+java.lang.IllegalAccessError: tried to access method com.google.common.base.Stopwatch.<init>()V
+
+解决办法就是在下面增加guava依赖，spark里面用的版本太低。
+<dependency>
+  <groupId>com.google.guava</groupId>
+  <artifactId>guava</artifactId>
+  <version>15.0</version>
+</dependency>
+
+
+2，VM options设置为：
+-Dspark.master=local
+
+
+二，作业一代码
+1，获取环境
+val conf = new SparkConf().setMaster("local[2]").setAppName("invertedIndex")
+val sc = new SparkContext(conf)
+
+2，读取文件
+val inputrdd = sc.textFile(data_path)
+
+3，建立倒排索引
+val inverted_index = inputrdd.map(line => {
+      val strArr = line.split("\\.")
+      (strArr(0),strArr(1))
+    })
+      //上面对每行通过'.'分割得到index和内容，然后再对数据进行flatMap将数据分割并将文件的index放到数据里面
+      .flatMap(line=>{
+        val index = line._1
+        val content = line._2
+        val content_Strip = content.stripPrefix("\"").stripSuffix("\"")
+        val content_Split = content_Strip.split(" ")
+        content_Split.map(word => {
+          ((word,index),1)
+        })
+      })
+      //上述之后数据变成((it,0),1)|((is,0),1)形式。然后将相同单词和文件的数据加起来
+      .reduceByKey(_+_)
+      //再将数据拆分成以单词为key的以index和次数为Hashmap的格式，这样做是为了reduceByKey时方便
+      .map(tup=>(tup._1._1,mutable.HashMap(tup._1._2->tup._2)))
+//      .map(tup=>(tup._1._1,tup._2))
+      .reduceByKey(_++_)
+      //上述操作之后变成这样的形式(banana,Map(2 -> 1)) 、(is,Map(2 -> 1, 1 -> 1, 0 -> 2))
+      //然后再将数据进行一定的排序并存储到Array中，最后输出即可
+      .map(word_map =>{
+        val myStrArr = new mutable.ArrayBuffer[(String,Int)]
+        val word = word_map._1
+        val index_time = word_map._2
+        val index_sort = index_time.keySet.toArray.sorted
+        for (idx <- index_sort){
+          myStrArr.append((idx,index_time(idx)))
+        }
+        (word,myStrArr)
+      })
+
+
+最终输出如下：
+inverted_index.foreach(println(_))
+
+
+(is,ArrayBuffer((0,2), (1,1), (2,1)))
+(banana,ArrayBuffer((2,1)))
+(what,ArrayBuffer((0,1), (1,1)))
+(it,ArrayBuffer((0,2), (1,1), (2,1)))
+(a,ArrayBuffer((2,1)))
+
