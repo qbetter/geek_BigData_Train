@@ -1,10 +1,8 @@
 package com.hb
 
-import org.apache.hadoop.fs.{FileUtil, Path}
-//import java.io.File
-import java.nio.file.FileSystem
+import org.apache.hadoop.conf.Configuration}
 
-import javax.security.auth.login.{AppConfigurationEntry, Configuration}
+import javax.security.auth.login.{AppConfigurationEntry}
 import org.apache.spark.{SparkConf, SparkContext}
 import org.apache.spark.sql.SparkSession
 
@@ -15,7 +13,11 @@ import scala.math.random
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs.{FileSystem, FileUtil, LocatedFileStatus, Path}
 import org.apache.log4j.Logger
+import java.net.URI
 
+////代码框架是这样的,并没有经过线上验证.如果父目录不存在的话，FileUtil.copy 会自动帮你建父目录；而且listFiles可以递归地获取文件列表 可以轻松获得文件夹下包括嵌套目录的所有文件。
+
+//使用了case class会自动创建伴生对象以及自定义一些函数
 case class SparkDictCpOptions(source: String,
                               target: String,
                               maxConcurrence: Int,
@@ -29,61 +31,30 @@ case class CopyInfo(sourceFile: String,
 
 object DispcpDemo {
 
-
   def main(args: Array[String]): Unit = {
-
-
     println("ppp")
+    val sourcePath = ""
+    val targerPath = ""
 
+    val cpinfo = CopyInfo(sourcePath, targerPath)
+    val conf = new Configuration()
+    this.copyFunc(cpinfo,conf)
 
   }
 
-//  def mkdirFunc(sparkSession: SparkSession,sourcePath: Path, targetPath: Path,
-//                fileList: ArrayBuffer[(Path, Path)], options: SparkDistCPOptions): Unit ={
-//    val fs = FileSystem
-////      .get(sparkSession.sparkContext.hadoopConfiguration)
-//    fs.listStatus(sourcePath)
-//
-//
-//  }
+  def copyFunc(copyInfo: CopyInfo, conf: Configuration): Unit ={
+    val sourceFile = copyInfo.sourceFile
+    val targetFile = copyInfo.targetFile
+    val sourceFs = FileSystem.get(new URI(toLegalUri(sourceFile)), conf)
+    val targetFs = FileSystem.get(new URI(toLegalUri(targetFile)), conf)
+    FileUtil.copy(sourceFs, new Path(sourceFile),
+      targetFs, new Path(targetFile),
+      false, conf)
+  }
 
-
-//  def copyFunc(sparkSession: SparkSession,sourcePath: Path, targetPath: Path,
-//                fileList: ArrayBuffer[(Path, Path)], options: SparkDistCPOptions): Unit ={
-//
-//
-//
-//    val conf = new SparkConf().setMaster("local[2]").setAppName("invertedIndex")
-////    val sc = new SparkContext(conf)
-//    val sc = sparkSession.sparkContext
-//    val maxConcurrenceTask = Some(options.maxConcurrenceTask).getOrElse(5)
-//    val rdd = sc.makeRDD(fileList, maxConcurrenceTask)
-//
-//    rdd.mapPartitions(ite =>{
-//      val hadoopConf = new Configuration()
-//      ite.foreach(tup => {
-//        try{
-//
-//
-//        }catch {
-//          case ex:Exception => if(!options.ignoreFailures) throw ex else println(ex.getMessage)
-//        }
-//      })
-//      ite
-//    })
-
-
-
-
-
-
-
-
-//  }
-
-
-
-
+  def toLegalUri(input: String): String = {
+    input.replaceAll(" ", "%20")
+  }
 
 }
 

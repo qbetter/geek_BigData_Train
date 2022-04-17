@@ -66,14 +66,37 @@ val inverted_index = inputrdd.map(line => {
         (word,myStrArr)
       })
 
-
 最终输出如下：
 inverted_index.foreach(println(_))
-
 
 (is,ArrayBuffer((0,2), (1,1), (2,1)))
 (banana,ArrayBuffer((2,1)))
 (what,ArrayBuffer((0,1), (1,1)))
 (it,ArrayBuffer((0,2), (1,1), (2,1)))
 (a,ArrayBuffer((2,1)))
+
+三，作业二代码
+核心是使用FileUtil.copy去复制，FileUtil.copy 会自动帮你建父目录；而且也可以递归地获取文件列表的所有文件。
+
+  def copyFunc(copyInfo: CopyInfo, conf: Configuration): Unit ={
+    val sourceFile = copyInfo.sourceFile
+    val targetFile = copyInfo.targetFile
+    val sourceFs = FileSystem.get(new URI(toLegalUri(sourceFile)), conf)
+    val targetFs = FileSystem.get(new URI(toLegalUri(targetFile)), conf)
+      FileUtil.copy(sourceFs, new Path(sourceFile),
+        targetFs, new Path(targetFile),
+        false, conf)
+  }
+
+
+另外对于简单的类可以在类中创建case class，如下：
+case class CopyInfo(sourceFile: String,
+                    targetFile: String)
+
+当一个类被声名为case class的时候，scala会帮助我们做下面几件事情：
+1 构造器中的参数如果不被声明为var的话，它默认的话是val类型的，但一般不推荐将构造器中的参数声明为var
+2 自动创建伴生对象，同时在里面给我们实现子apply方法，使得我们在使用的时候可以不直接显示地new对象
+3 伴生对象中同样会帮我们实现unapply方法，从而可以将case class应用于模式匹配，
+4 实现自己的toString、hashCode、copy、equals方法
+除此之此，case class与其它普通的scala类没有区别
 
