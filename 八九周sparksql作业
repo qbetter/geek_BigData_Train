@@ -1,0 +1,82 @@
+## 作业一：为 Spark SQL 添加一条自定义命令
+SHOW VERSION；
+显示当前 Spark 版本和 Java 版本。
+
+1，SqlBase.g4增加两行
+添加语句 SHOW VERSION：
+| SHOW VERSION                                                     #showVersion
+VERSION : 'VERSION';
+
+2，编译antlr4
+
+3，增加 ShowVersionCommand 类
+package org.apache.spark.sql.execution.command
+import org.apache.spark
+import org.apache.spark.sql.{Row, SparkSession}
+import org.apache.spark.sql.catalyst.plans.logical.IgnoreCachedData
+case class ShowVersionCommand() extends LeafRunnableCommand with IgnoreCachedData {
+
+  override def run(sparkSession: SparkSession): Seq[Row] = {
+    val javaVersion = System.getProperty("java.version")
+    println(s"java version: $javaVersion")
+    println(s"spark version: ${spark.SPARK_VERSION}")
+    // scalastyle:on println
+    Seq.empty[Row]
+  }
+}
+
+4. 修在 SparkSqlParser.scala 中增加 visitShowVersion 方法
+  override def visitShowVersion(ctx: ShowVersionContext): LogicalPlan = withOrigin(ctx) {
+    ShowVersionCommand()
+  }
+5. 编译
+build/mvn clean package -DskipTests
+6. 运行 bin/spark-sql，输入 show version;
+
+
+## 作业二：构建 SQL 满足如下要求
+通过 set spark.sql.planChangeLog.level=WARN，查看：
+1,构建一条 SQL，同时 apply 下面三条优化规则：
+CombineFilters
+CollapseProject
+BooleanSimplification
+
+create table table1(raw1 int, raw2 int) using parquet
+select add1, (raw2 + 1) as ad2 from (select (raw1 + 1) as add1, raw2 from table1 where raw1 > 10) where add1 > 1 and 1=1 
+
+2,构建一条 SQL，同时 apply 下面五条优化规则：
+ConstantFolding
+PushDownPredicates
+ReplaceDistinctWithAggregate
+ReplaceExceptWithAntiJoin
+FoldablePropagation
+
+create table table1(raw1 int, raw2 int) using parquet
+create table table1(x1 int, x2 int) using parquet
+select distinct t1, t2, 'custom' as a3  from ( select * from table1 where t2 = 10 and 1 = 1 ) where t1 > 5 and 1 = 1 except select x1, x2, 1.0 as x3 from table2 where x2 = 10 
+
+
+作业三
+
+实现自定义规则
+(静默规则，通过 set spark.sql.planChangeLog.level=WARN，确认执行到就行)
+
+package geek.bigdata.week09
+import org.apache.spark.internal.Logging
+import org.apache.spark.sql.SparkSession
+import org.apache.spark.sql.catalyst.plans.logical.{Command, LogicalPlan}
+import org.apache.spark.sql.catalyst.rules.Rule
+
+case class homework03(spark: SparkSession) extends Rule[LogicalPlan] with Logging{
+  override def apply(plan: LogicalPlan): LogicalPlan = plan.transform {
+    case command: Command => {
+      logWarning("log do nothing")
+      command
+    }
+  }
+}
+
+创建自己的 Extension 并注入。通过 spark.sql.extensions 提交
+set spark.sql.planChangeLog.level=WARN
+spark-sql --jars week09-1.0.0-SNAPSHOT.jar --conf spark.sql.extensions=geek.bigdata.week09.MySparkSessionExtension
+
