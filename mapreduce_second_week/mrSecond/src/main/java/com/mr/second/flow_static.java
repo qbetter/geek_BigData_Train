@@ -76,11 +76,11 @@ public class flow_static {
         job.setMapOutputValueClass(FlowBean.class);
         job.setNumReduceTasks(1);
 
-        String input_path = args[0];
-        String output_path = args[1];
+//        String input_path = args[0];
+//        String output_path = args[1];/Users/zhanghuaibei/Documents/java_scala_spark_flink/spark_practice/geek_BigData_Train/mapreduce_second_week/mrSecond/src/main/java/com/mr/second/HTTP_20130313143750.dat
+        String input_path = "/Users/zhanghuaibei/Documents/java_scala_spark_flink/spark_practice/geek_BigData_Train/mapreduce_second_week/mrSecond/src/main/java/com/mr/second/HTTP_20130313143750.dat";
+        String output_path = "/Users/zhanghuaibei/Documents/java_scala_spark_flink/spark_practice/geek_BigData_Train/mapreduce_second_week/mrSecond/src/main/java/com/mr/second/SecondOutput5";
 
-//        String input_path = "/Users/huaibei/Documents/ml/geek大数据/第二周MapReduce/mrSecond/src/main/java/com/mr/second/HTTP_20130313143750.dat";
-//        String output_path = "/Users/huaibei/Documents/ml/geek大数据/第二周MapReduce/mrSecond/src/main/java/com/mr/second/SecondOutput";
         Path outputP = new Path(output_path);
         FileSystem fileSystem = FileSystem.get(conf);
         if(fileSystem.exists(outputP)){

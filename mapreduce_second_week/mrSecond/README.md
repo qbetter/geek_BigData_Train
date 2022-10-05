@@ -48,35 +48,31 @@
         }
     }
 
-  
 
 **然后就是主函数的MapReduce了**
 
 1，首先是mapper部分，该部分主要是以手机号为key将上行和下行流量存储到Bean中
+   
+    public static class FlowMapper extends Mapper<LongWritable,Text,Text,FlowBean> {
 
-    
-        public static class FlowMapper extends Mapper<LongWritable,Text,Text,FlowBean> {
-    
-            @Override
-            protected void map(LongWritable key, Text value, Context context) throws IOException, InterruptedException {
-    
-                StringTokenizer IterToken = new StringTokenizer(value.toString(), "\n");
-                while (IterToken.hasMoreTokens()) {
-                    String originStr = IterToken.nextToken();
-                    String[] split = originStr.split("\t");
-    //                System.out.println(originStr);
-                    String phone_num = split[1];
-                    String upflow = split[9];
-                    String downflow = split[10];
-                    String flows = upflow + "\t" + downflow;
-                    FlowBean flowBean = new FlowBean(Long.parseLong(upflow), Long.parseLong(downflow));
-    //                FlowBean flowBean = new FlowBean();
-                    context.write(new Text(phone_num), flowBean);
-                }
-    
-    
+        @Override
+        protected void map(LongWritable key, Text value, Context context) throws IOException, InterruptedException {
+
+            StringTokenizer IterToken = new StringTokenizer(value.toString(), "\n");
+            while (IterToken.hasMoreTokens()) {
+                String originStr = IterToken.nextToken();
+                String[] split = originStr.split("\t");
+           //    System.out.println(originStr);
+                String phone_num = split[1];
+                String upflow = split[9];
+                String downflow = split[10];
+                String flows = upflow + "\t" + downflow;
+                FlowBean flowBean = new FlowBean(Long.parseLong(upflow), Long.parseLong(downflow));
+           //    FlowBean flowBean = new FlowBean();
+                context.write(new Text(phone_num), flowBean);
             }
         }
+    }
 
     
 然后reduce部分将相同手机号码的上下行流量和总流量存储起来。
@@ -171,5 +167,18 @@ setMapOutputKeyClass和setMapOutputValueClass设置的是map的输出类型，�
     Reducer<K3, V3, K4, V4>
 K3,V3和K4,V4类型不同，所以仍会报错，因此需要将setCombinerClass方法注释掉  
 //job.setCombinerClass(Reduce.class);
+
+**另外的一种解释方式**
+当程序中只定义了output的类型时：
+    
+            job.setOutputValueClass(Text.class);
+            job.setOutputKeyClass(Text.class);
+最终的输出是错误的。在其后添加如下设置：
+
+            job.setMapOutputValueClass(FlowBean.class);
+            job.setMapOutputKeyClass(Text.class);
+这是单独对map的输入输出进行了格式设置，因为最初的设置是同时将map和reduce的输入输出同时设置的。通过单独设置map时的输入输出情况来解决问题。  
+                    
+
 
 
