@@ -78,8 +78,9 @@ public class phone_flow_sum {
         job.setOutputValueClass(Text.class);
 
 //        String input_path = args[0];
-        String input_path = "/Users/huaibei/Documents/ml/geek大数据/第二周MapReduce/mrSecond/src/main/java/com/mr/second/HTTP_20130313143750.dat";
-        String output_path = "/Users/huaibei/Documents/ml/geek大数据/第二周MapReduce/mrSecond/src/main/java/com/mr/second/SecondOutput.txt";
+//        String input_path = "/Users/huaibei/Documents/ml/geek大数据/第二周MapReduce/mrSecond/src/main/java/com/mr/second/HTTP_20130313143750.dat";
+        String input_path = "/Users/zhanghuaibei/Documents/java_scala_spark_flink/spark_practice/geek_BigData_Train/mapreduce_second_week/mrSecond/src/main/java/com/mr/second/HTTP_20130313143750.dat";
+        String output_path = "/Users/zhanghuaibei/Documents/java_scala_spark_flink/spark_practice/geek_BigData_Train/mapreduce_second_week/mrSecond/src/main/java/com/mr/second/SecondOutput22";
         FileInputFormat.addInputPath(job, new Path(input_path));
         FileOutputFormat.setOutputPath(job, new Path(output_path));
 

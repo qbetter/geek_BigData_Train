@@ -68,10 +68,12 @@ public class mr_second {
         job.setOutputKeyClass(Text.class);
         job.setOutputValueClass(IntWritable.class);
 
-        String input_path = "/Usd/src/main/java/com/mr/second/input_file.txt";
+//        String input_path = "/Usd/src/main/java/com/mr/second/input_file.txt";
+        String input_path = "/Users/zhanghuaibei/Documents/java_scala_spark_flink/spark_practice/geek_BigData_Train/mapreduce_second_week/mrSecond/src/main/java/com/mr/second/input.txt";
 //        String input_path = args[0];
 //        String output_path = args[1];
-        String output_path = "/Usersn/java/com/mr/second/output_file";
+//        String output_path = "/Usersn/java/com/mr/second/output_file";
+        String output_path = "/Users/zhanghuaibei/Documents/java_scala_spark_flink/spark_practice/geek_BigData_Train/mapreduce_second_week/mrSecond/src/main/java/com/mr/second/output";
 //        FileInputFormat.addInputPath(job, new Path(input_path));
         FileInputFormat.addInputPath(job, new Path(input_path));
 //        FileOutputFormat.setOutputPath(job, new Path(output_path));
