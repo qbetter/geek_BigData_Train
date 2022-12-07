@@ -1,0 +1,7 @@
+跳板机登陆
+
+
+ssh student3@114.55.52.333 
+GeekIs@Hero2021
+
+hdfs地址：hdfs://emr-header-1.cluster-285604:9000/user/stude/second/
